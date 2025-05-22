@@ -1,0 +1,1 @@
+java -cp "out/production/Grupp12-Utvecklingsprojekt:libs/utvecklingsprojekt.jar":"out/production/Grupp12-Utvecklingsprojekt:libs/jfreechart-1.5.5.jar" Server.ServerLauncher 55556
