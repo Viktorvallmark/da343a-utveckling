@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.net.*;
 
 
-public class Appliance extends JFrame implements ChangeListener {
+public class Appliance extends JFrame {
     protected JSlider slider;
     private JLabel label;
     private JPanel panel;
@@ -34,7 +34,7 @@ public class Appliance extends JFrame implements ChangeListener {
     public Appliance(String name, int maxPower) {
         this.name = name;
         this.maxPower = maxPower;
-        this.slider = new JSlider(0, maxPower, maxPower / 2);
+        this.slider = new JSlider(0, maxPower, 0);
         setCurrentPower(maxPower /2);
         this.panel = new JPanel();
         this.frame = new JFrame(name);
@@ -65,6 +65,7 @@ public class Appliance extends JFrame implements ChangeListener {
                 getPowerBuffer().put(currentPower);
             }
         });
+        /*
         slider.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -94,13 +95,13 @@ public class Appliance extends JFrame implements ChangeListener {
 
             }
         });
-
+        */
         panel.add(slider);
         panel.add(label);
 
         frame.add(panel);
 
-        label.setText(name + " energy consumption: " + slider.getValue() + " watts.");
+        label.setText(name + " energy consumption: " + 0 + " watts.");
 
         frame.setSize(500, 200);
         frame.setVisible(true);
@@ -114,12 +115,12 @@ public class Appliance extends JFrame implements ChangeListener {
 
         return frame;
     }
-
+/*
     @Override
     public void stateChanged(ChangeEvent e) {
         label.setText(name + " energy consumption: " + currentPower + " watts.");
     }
-
+*/
     public void openConnection(){
         String response;
         System.out.println("Socket try");

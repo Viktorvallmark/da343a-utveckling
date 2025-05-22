@@ -1,6 +1,5 @@
 package Server;
 
-import se.mau.DA343A.VT25.projekt.IAppExitingCallback;
 import se.mau.DA343A.VT25.projekt.LiveXYSeries;
 import se.mau.DA343A.VT25.projekt.ServerGUI;
 import se.mau.DA343A.VT25.projekt.net.ListeningSocket;
@@ -13,13 +12,14 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.HashMap;
 import javax.swing.*;
 
 public class Server extends ListeningSocket{
     private ServerModel model;
     private ServerGUI serverGUI;
     private LiveXYSeries<Double> series;
-    private IAppExitingCallback callback;
+    private HashMap<SocketAddress, LiveXYSeries<Double>> clientHashMap = new HashMap<>();
 
     public Server(int listeningPort) {
         super(listeningPort);
@@ -47,11 +47,19 @@ public class Server extends ListeningSocket{
                    boolean check = token.verifyToken(request);
                    System.out.println(check+"inside Server Class new ListeningSocketConnectionWorker");
                    if(check){
+                       /*
                        String messageConnected = "Client from address: "+socketAddress+" has connected";
                        SwingUtilities.invokeLater(()-> {serverGUI.addLogMessage(messageConnected);
                            serverGUI.addSeries(series);
                        });
-
+                        */
+                       LiveXYSeries<Double> newAppSeries = new LiveXYSeries<>("Client: "+ socketAddress, 20);
+                       clientHashMap.put(socketAddress, newAppSeries);
+                       SwingUtilities.invokeLater(() -> {
+                          String message = "Client from address: " + socketAddress+ " has connected";
+                          serverGUI.addLogMessage(message);
+                          serverGUI.addSeries(newAppSeries);
+                       });
                        Thread newThread = new Thread(new Runnable() {
                            @Override
                            public void run() {
@@ -112,7 +120,7 @@ public class Server extends ListeningSocket{
         return this.series;
     }
 
-    public synchronized void updateSeries(Double y){
+    public synchronized void updateSeries(Double y, LiveXYSeries<Double> series){
         long currentTime = System.currentTimeMillis()/1000;
         series.addValue((double) currentTime, y);
 
