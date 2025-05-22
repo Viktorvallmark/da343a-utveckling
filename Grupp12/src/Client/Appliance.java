@@ -24,7 +24,6 @@ public class Appliance extends JFrame {
     private int currentPower;
     private Buffer<Integer> powerBuffer;
     private SecurityTokens token;
-    private boolean isConnected = true;
     private Socket soc;
     private DataInputStream input;
     private DataOutputStream output;

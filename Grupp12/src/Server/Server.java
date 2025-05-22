@@ -6,8 +6,7 @@ import se.mau.DA343A.VT25.projekt.net.ListeningSocket;
 import se.mau.DA343A.VT25.projekt.net.ListeningSocketConnectionWorker;
 import se.mau.DA343A.VT25.projekt.net.SecurityTokens;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -19,7 +18,7 @@ public class Server extends ListeningSocket{
     private ServerModel model;
     private ServerGUI serverGUI;
     private LiveXYSeries<Double> series;
-    private HashMap<SocketAddress, LiveXYSeries<Double>> clientHashMap = new HashMap<>();
+    private final HashMap<SocketAddress, ClientData> clientHashMap = new HashMap<>();
 
     public Server(int listeningPort) {
         super(listeningPort);
@@ -54,46 +53,52 @@ public class Server extends ListeningSocket{
                        });
                         */
                        LiveXYSeries<Double> newAppSeries = new LiveXYSeries<>("Client: "+ socketAddress, 20);
-                       clientHashMap.put(socketAddress, newAppSeries);
+                       ClientData clientData = new ClientData(newAppSeries);
+                       clientHashMap.put(socketAddress, clientData);
                        SwingUtilities.invokeLater(() -> {
                           String message = "Client from address: " + socketAddress+ " has connected";
                           serverGUI.addLogMessage(message);
                           serverGUI.addSeries(newAppSeries);
                        });
-                       Thread newThread = new Thread(new Runnable() {
-                           @Override
-                           public void run() {
-                               Timer timer = new Timer(1000, new ActionListener() {
-                                   @Override
-                                   public void actionPerformed(ActionEvent e) {
-                                       model.calcTotalConsumption();
-                                       System.out.println("Total consumption: " + model.calcTotalConsumption());
 
-                                   }
+                       clientData.setTimer(new Timer(1000, e -> {
+                         synchronized (clientHashMap) {
+                             ClientData data = clientHashMap.get(socketAddress);
+                             if(data != null && clientData.isConnected() ){
+                                 updateSeries(data.getConsumption(), data.getSeries());
+                             }
+                         }
+                       }));
+                       clientData.getTimer().setInitialDelay(1000);
+                       clientData.getTimer().start();
 
-                               });
+                       dataOutput.writeUTF("true");
 
-                               timer.setInitialDelay(0);
-                               timer.start();
+
+                       while (true){
+                           try{
+                               request = dataInput.readUTF();
+                               double consumption = Double.parseDouble(request);
+
+                                synchronized (clientHashMap){
+                                    ClientData data = clientHashMap.get(socketAddress);
+                                    if (data != null){
+                                        data.setConsumption(consumption);
+                                        model.addToPowerList(String.valueOf(consumption));
+                                    }
+                                }
+                               System.out.println("Client "+ socketAddress+": "+ consumption);
+                           } catch (IOException e) {
+
+                               System.out.println("Client from address: "+socketAddress+" has disconnected.");
+                               handleDisconnection(socketAddress);
+                               break;
+
+                           } catch (NumberFormatException e){
+                               System.err.println("Invalid number format from client: "+request);
                            }
+                       }
 
-                       });
-                       newThread.start();
-
-
-                       Timer timer2 = new Timer(1000, new ActionListener() {
-                           @Override
-                           public void actionPerformed(ActionEvent e) {
-                               model.update();
-                               updateSeries(model.getTotalConsumption());
-                               updateCurrentConsumptionData();
-
-                           }
-                       });
-                       SwingUtilities.invokeLater(()-> {
-                           timer2.setInitialDelay(1000);
-                           timer2.start();
-                       });
                        dataOutput.writeUTF("true");
                         while (true) {
                             try {
@@ -116,14 +121,31 @@ public class Server extends ListeningSocket{
         };
     }
 
+    private void handleDisconnection(SocketAddress socketAddress) {
+        SwingUtilities.invokeLater(() -> {
+            synchronized (clientHashMap) {
+                ClientData data = clientHashMap.get(socketAddress);
+                if (data != null) {
+                    data.setConnected(false);
+                    if (data.getTimer() != null) {
+                        data.getTimer().stop();
+                    }
+
+                    String message = "Client from address: " + socketAddress + " has disconnected";
+                    serverGUI.addLogMessage(message);
+                }
+            }
+        });
+    }
+
+
     public synchronized LiveXYSeries<Double> getSeries(){
         return this.series;
     }
 
     public synchronized void updateSeries(Double y, LiveXYSeries<Double> series){
         long currentTime = System.currentTimeMillis()/1000;
-        series.addValue((double) currentTime, y);
-
+        SwingUtilities.invokeLater(() -> series.addValue((double) currentTime, y));
     }
 
     public synchronized void updateCurrentConsumptionData() {
