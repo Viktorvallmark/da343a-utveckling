@@ -35,7 +35,7 @@ public class Appliance extends JFrame implements ChangeListener {
         this.name = name;
         this.maxPower = maxPower;
         this.slider = new JSlider(0, maxPower, maxPower / 2);
-        this.currentPower = slider.getValue();
+        setCurrentPower(maxPower /2);
         this.panel = new JPanel();
         this.frame = new JFrame(name);
         this.label = new JLabel(name);
@@ -56,7 +56,15 @@ public class Appliance extends JFrame implements ChangeListener {
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
         slider.setMajorTickSpacing(maxPower / 10);
-        slider.addChangeListener(this);
+        slider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                currentPower = slider.getValue();
+
+                label.setText(name + " energy consumption: " + currentPower + " watts.");
+                getPowerBuffer().put(currentPower);
+            }
+        });
         slider.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -72,6 +80,7 @@ public class Appliance extends JFrame implements ChangeListener {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+
 
             }
 

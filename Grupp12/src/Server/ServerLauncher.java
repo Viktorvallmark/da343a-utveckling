@@ -7,7 +7,8 @@ public class ServerLauncher {
         serverModel.calcTotalConsumption();
 
 
-        int port = Integer.parseInt(args[0]);
+       // int port = Integer.parseInt(args[0]);
+        int port = 55556;
         Server server = new Server(port);
 
         new Thread(server).start();

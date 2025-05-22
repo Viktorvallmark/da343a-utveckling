@@ -45,7 +45,7 @@ public class Server extends ListeningSocket{
                        throw new RuntimeException(e);
                    }
                    boolean check = token.verifyToken(request);
-                   System.out.println(check);
+                   System.out.println(check+"inside Server Class new ListeningSocketConnectionWorker");
                    if(check){
                        String messageConnected = "Client from address: "+socketAddress+" has connected";
                        SwingUtilities.invokeLater(()-> {serverGUI.addLogMessage(messageConnected);

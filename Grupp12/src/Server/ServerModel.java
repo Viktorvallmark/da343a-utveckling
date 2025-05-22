@@ -1,9 +1,6 @@
 package Server;
 
-import se.mau.DA343A.VT25.projekt.LiveXYSeries;
-
 import java.util.List;
-import java.util.TimerTask;
 import java.util.Vector;
 
 public class ServerModel {

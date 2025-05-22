@@ -39,7 +39,6 @@ public class ApplianceMenu extends JFrame implements ItemListener, IAppExitingCa
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         //Här är för att få ett nytt fönster att poppa upp
-        //TODO: Ska inte detta köras i GUI-Thread?
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
